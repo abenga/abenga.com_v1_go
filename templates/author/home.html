@@ -1,0 +1,63 @@
+{{define "title"}}Abenga.com{{end}}
+
+{{define "content"}}
+<div>
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <!-- <div class="navbar-header">
+        <a class="navbar-brand" href="/author/">Author Page</a>
+      </div> -->
+      <div>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/author/newpostseries/"><i class="fa fa-plus"></i>&nbsp;new post series</a></li>
+          <li><a href="/author/newpost/" data-toggle="modal"><i class="fa fa-plus"></i>&nbsp;new post</a></li>
+          <li><a href="#EditAuthorDetailsModal"><i class="fa fa-edit"></i>&nbsp;edit profile</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <h3>Posts</h3>
+    {{if index .Misc "AuthorPosts"}}
+      <table class="table table-condensed">
+        <tr>
+          <th class="col-sm-11">Post</th>
+          <th class="col-sm-1">&nbsp;</th>
+        </tr>
+        {{range index .Misc "AuthorPosts"}}
+          <tr>
+            <td><a href="/post/{{index . "YearAdded"}}/{{index . "MonthAdded"}}/{{index . "DayAdded"}}/{{index . "JoinedTitle"}}/">{{if index . "SeriesTitle"}}{{index . "SeriesTitle"}} : {{index . "PositionInSeries"}}.&nbsp;{{end}}{{index . "Title"}}</a></td>
+            <td class="text-right"><a class="btn" href="/author/post/{{index . "YearAdded"}}/{{index . "MonthAdded"}}/{{index . "DayAdded"}}/{{index . "JoinedTitle"}}/edit/" title="New Post"><i class="fa fa-edit"></i></a></td>
+          </tr>
+        {{end}}
+      </table>
+    {{else}}
+      No Post Series
+    {{end}}
+    <h3>Post Series</h3>
+    {{if index .Misc "AuthorPostSeries"}}
+      <table class="table table-condensed">
+        <tr>
+          <th>Post Series</th>
+          <th>&nbsp;</th>
+        </tr>
+        {{range index .Misc "AuthorPostSeries"}}
+          <tr>
+            <td><a href="/postseries/{{index . "JoinedTitle"}}/">{{index . "Title"}} ({{index . "NumberOfPosts"}} posts)</a></td>
+            <td class="text-right">
+              <a class="btn" href="/author/postseries/{{index . "JoinedTitle"}}/newpost/" title="New Post"><i class="fa fa-plus"></i></a>
+              <a class="btn" href="/author/postseries/{{index . "JoinedTitle"}}/edit/" title="Edit Series"><i class="fa fa-edit"></i></a>
+            </td>
+          </tr>
+        {{end}}
+      </table>
+    {{else}}
+      No Post Series
+    {{end}}
+  </div>
+</div>
+
+{{end}}

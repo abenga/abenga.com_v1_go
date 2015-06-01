@@ -1,0 +1,27 @@
+{{define "title"}}{{index .Post "Title"}} | {{if index .Post "SeriesTitle"}}{{index .Post "SeriesTitle"}} | {{end}} Horace Abenga{{end}}
+
+{{define "content"}}
+  {{if .Post}}
+    {{if index .Post "SeriesTitle"}}
+      <div class="row">
+        {{if index .Post "PreviousPostJoinedTitle"}}<span class="pull-left"><a class="btn btn-primary btn-sm" href="/post/{{index .Post "PreviousPostYearAdded"}}/{{index .Post "PreviousPostMonthAdded"}}/{{index .Post "PreviousPostDayAdded"}}/{{index .Post "PreviousPostJoinedTitle"}}/"><i class="fa fa-arrow-left"></i>&nbsp;&nbsp;{{index .Post "PreviousPostPositionInSeries"}}.&nbsp;{{index .Post "PreviousPostTitle"}}</a></span>{{end}}
+        {{if index .Post "NextPostJoinedTitle"}}<span class="pull-right"><a class="btn btn-primary btn-sm" href="/post/{{index .Post "NextPostYearAdded"}}/{{index .Post "NextPostMonthAdded"}}/{{index .Post "NextPostDayAdded"}}/{{index .Post "NextPostJoinedTitle"}}/">{{index .Post "NextPostPositionInSeries"}}.&nbsp;{{index .Post "NextPostTitle"}}&nbsp;&nbsp;<i class="fa fa-arrow-right"></i></a></span>{{end}}
+      </div>
+    {{end}}
+    <h1 class="heading">{{if index .Post "SeriesTitle"}}{{index .Post "SeriesTitle"}}: {{.Post.PositionInSeries}}.&nbsp;{{end}}{{index .Post "Title"}}</h1>
+    {{if index .Post "SeriesTitle"}}
+      <blockquote>
+        <p>This is a post in the <a href="/postseries/{{index .Post "SeriesJoinedTitle"}}/">{{index .Post "SeriesTitle"}}</a> series.</p>
+        {{index .Post "SeriesAbstract"}}
+      </blockquote>
+    {{end}}
+    <div>{{index .Post "BodyHTML"}}</div>
+    <hr>
+    {{if index .Post "SeriesTitle"}}
+      <div class="row">
+        {{if index .Post "PreviousPostJoinedTitle"}}<span class="pull-left"><a class="btn btn-primary btn-sm" href="/post/{{index .Post "PreviousPostYearAdded"}}/{{index .Post "PreviousPostMonthAdded"}}/{{index .Post "PreviousPostDayAdded"}}/{{index .Post "PreviousPostJoinedTitle"}}/"><i class="fa fa-arrow-left"></i>&nbsp;&nbsp;{{index .Post "PreviousPostPositionInSeries"}}.&nbsp;{{index .Post "PreviousPostTitle"}}</a></span>{{end}}
+        {{if index .Post "NextPostJoinedTitle"}}<span class="pull-right"><a class="btn btn-primary btn-sm" href="/post/{{index .Post "NextPostYearAdded"}}/{{index .Post "NextPostMonthAdded"}}/{{index .Post "NextPostDayAdded"}}/{{index .Post "NextPostJoinedTitle"}}/">{{index .Post "NextPostPositionInSeries"}}.&nbsp;{{index .Post "NextPostTitle"}}&nbsp;&nbsp;<i class="fa fa-arrow-right"></i></a></span>{{end}}
+      </div>
+    {{end}}
+  {{end}}
+{{end}}

@@ -1,0 +1,50 @@
+{{define "title"}}Abenga.com{{end}}
+
+{{define "content"}}
+<nav class="navbar navbar-default" role="navigation">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/author/">Author Page</a>
+    </div>
+    <div>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#NewPostSeriesModal" data-toggle="modal"><i class="fa fa-plus"></i>&nbsp;new post series</a></li>
+        <li><a href="#NewPostModal" data-toggle="modal"><i class="fa fa-plus"></i>&nbsp;new post</a></li>
+        <li><a href="#EditAuthorDetailsModal"><i class="fa fa-edit"></i>&nbsp;edit profile</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<form class="" id="NewPostForm" method="post">
+  <h1 class="underlined">Add New Post</h1>
+  <fieldset>
+
+    {{if index .Misc "SeriesJTitle"}}<input type="hidden" id="SeriesJTitle" name="SeriesJTitle" value="{{index .Misc "SeriesJTitle"}}">{{ end }}
+
+    <div class="form-group">
+      <label for="Title">Title</label>
+      <input type="text" class="form-control required" id="Title" name="Title" placeholder="Title">
+    </div>
+
+    <div class="form-group">
+      <label for="AbstractMD">Abstract</label>
+      <textarea class="form-control required" rows="6" id="AbstractMD" name="AbstractMD" placeholder="Summary, in Markdown"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="BodyMD">Body</label>
+      <textarea class="form-control required" rows="20" id="BodyMD" name="BodyMD" placeholder="Full post content, in Markdown"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="Tags">Tags</label>
+      <input type="text" class="form-control required" id="Tags" name="Tags" placeholder="Tags">
+    </div>
+
+  </fieldset>
+  <div class="form-group text-right">
+    <button class="btn btn-primary"><i class="fa fa-save"></i>&nbsp;Save</button>
+  </div>
+</form>
+{{end}}

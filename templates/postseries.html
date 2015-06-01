@@ -1,0 +1,22 @@
+{{define "title"}}Abenga.com{{end}}
+
+{{define "content"}}
+  {{if index .Misc "PostSeries" }}
+    <div class="">
+      <h1>{{ index .Misc "PostSeries" "Title" }}</h1>
+      <div>{{ index .Misc "PostSeries" "AbstractHTML" }}</div>
+      <div class="text-right">{{ index .PostSeries "Tags" }}</div>
+    </div>
+  {{ end }}
+
+  {{if index .Misc "Posts" }}
+    {{ range index .Misc "Posts"}}
+      <div class="post-summary">
+        <h2 class="heading"><a href="/post/{{ index . "YearAdded" }}/{{ index . "MonthAdded" }}/{{ index . "DayAdded" }}/{{ index . "JoinedTitle" }}/">{{ .PositionInSeries }} : {{ index . "Title" }}</a></h2>
+        <div>{{ index . "AbstractHTML" }}</div>
+        <p class="text-right"><strong><em><a href="/post/{{ index . "YearAdded" }}/{{ index . "MonthAdded" }}/{{ index . "DayAdded" }}/{{ index . "JoinedTitle" }}/">more&nbsp;&hellip;</a></em></strong></p>
+        <p class="text-muted text-right"><em>{{ index . "DateAdded" }}</em></p>
+      </div>
+    {{ end }}
+  {{ end }}
+{{end}}
