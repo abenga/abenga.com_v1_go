@@ -9,10 +9,9 @@ be a bit kludgy.
   [context](http://www.gorillatoolkit.org/pkg/context) and
   [mux](http://www.gorillatoolkit.org/pkg/mux).
 
-* [Russross](https://github.com/russross)'
-  [Blackfriday](https://github.com/russross/blackfriday) Markdown processor.
+* [Blackfriday](https://github.com/russross/blackfriday) Markdown processor.
 
-* [justina](https://github.com/justina)'s middleware framework.
+* [alice](https://github.com/justinas/alice), a middleware framework for Go.
 
-* and the [Google App Engine](https://cloud.google.com/appengine/docs/go/)
-  libraries, of course.
+* The [Google App Engine](https://cloud.google.com/appengine/docs/go/)
+  libraries.
