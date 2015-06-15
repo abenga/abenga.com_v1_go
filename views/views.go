@@ -31,8 +31,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	pageData := context.Get(r, "PageData").(*x.PageData)
 	c := appengine.NewContext(r)
 
-	postmodels := make([]models.Post, 0, 10)
-	q := datastore.NewQuery("Post").Order("-DateAdded").Limit(10)
+	postmodels := make([]models.Post, 0, 12)
+	q := datastore.NewQuery("Post").Order("-DateAdded").Limit(12)
 	if n, err := q.Count(c); err == nil && n > 0 {
 		if keys, err := q.GetAll(c, &postmodels); err == nil {
 			posts := make([]map[string]template.HTML, 0)
