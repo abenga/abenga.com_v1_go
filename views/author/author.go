@@ -316,6 +316,7 @@ func NewPostInSeries(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Edit post series
 func EditSeries(w http.ResponseWriter, r *http.Request) {
 	pagevars := mux.Vars(r)
 	pageData := context.Get(r, "PageData").(*x.PageData)

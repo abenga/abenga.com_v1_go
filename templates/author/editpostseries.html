@@ -16,23 +16,23 @@
   </div>
 </nav>
 
-<form class="" id="ListToLetForm" action="/author/postseries/{{  index .PostSeries "SeriesJTitle" }}/edit/" method="post">
-  <h4>Add New Post Series</h4>
+<form class="" id="ListToLetForm" action="/author/postseries/{{  index .Misc "PostSeries" "JoinedTitle" }}/edit/" method="post">
+  <h4>Edit Post Series</h4>
   <fieldset>
 
     <div class="form-group">
       <label for="Title">Title</label>
-      <input type="text" class="form-control required" id="Title" name="Title" placeholder="Series Title" value="{{ index .PostSeries "Title" }}">
+      <input type="text" class="form-control required" id="Title" name="Title" placeholder="Series Title" value="{{ index .Misc "PostSeries" "Title" }}">
     </div>
 
     <div class="form-group">
       <label for="AbstractMD">Abstract</label>
-      <textarea class="form-control required" rows="8" id="AbstractMD" name="AbstractMD" placeholder="Summary, in Markdown Syntax">{{ index .PostSeries "AbstractMD" }}</textarea>
+      <textarea class="form-control required" rows="8" id="AbstractMD" name="AbstractMD" placeholder="Summary, in Markdown Syntax">{{ index .Misc "PostSeries" "AbstractMD" }}</textarea>
     </div>
 
     <div class="form-group">
       <label for="Tags">Tags</label>
-      <input type="text" class="form-control required" id="Tags" name="Tags" placeholder="Tags" value="{{ index .PostSeries "Tags" }}">
+      <input type="text" class="form-control required" id="Tags" name="Tags" placeholder="Tags" value="{{ index .Misc "PostSeries" "Tags" }}">
     </div>
 
   </fieldset>
