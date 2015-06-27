@@ -23,14 +23,11 @@ import (
 	"x"
 )
 
-var indexTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/index.html"))
-var postSeriesTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/postseries.html"))
-var postTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/post.html"))
-
 func Index(w http.ResponseWriter, r *http.Request) {
+	var indexTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/index.html"))
+
 	pageData := context.Get(r, "PageData").(*x.PageData)
 	c := appengine.NewContext(r)
-
 	postmodels := make([]models.Post, 0, 12)
 	q := datastore.NewQuery("Post").Order("-DateAdded").Limit(12)
 	if n, err := q.Count(c); err == nil && n > 0 {
@@ -72,6 +69,7 @@ func PostSeries(w http.ResponseWriter, r *http.Request) {
 	pagevars := mux.Vars(r)
 	posts := make([]map[string]template.HTML, 0)
 	q := datastore.NewQuery("PostSeries").Filter("JoinedTitle = ", pagevars["seriesjtitle"]).Limit(10)
+	var postSeriesTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/postseries.html"))
 	if n, err := q.Count(c); err == nil && n == 1 {
 		var postseries = make([]models.PostSeries, 0, 1)
 		if keys, err := q.GetAll(c, &postseries); err == nil {
@@ -142,6 +140,7 @@ func PostSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 func Post(w http.ResponseWriter, r *http.Request) {
+	var postTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/post.html"))
 	pageData := context.Get(r, "PageData").(*x.PageData)
 	c := appengine.NewContext(r)
 	pagevars := mux.Vars(r)
