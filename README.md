@@ -1,7 +1,6 @@
 # abenga.com Source Code.
 
-Site runs as a Go application on Google App Engine. Still learning Go, so might
-be a bit kludgy.
+Simple (extremely so) Go web application running on App Engine.
 
 ## Dependencies
 
