@@ -1,5 +1,8 @@
 app.yaml
+config.yaml
 index.yaml
 github.com/*
 static/fonts
 TODO.md
+.idea
+

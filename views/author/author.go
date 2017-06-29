@@ -1,8 +1,9 @@
 package admin
 
 import (
+
 	"errors"
-	// "fmt"
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -12,15 +13,20 @@ import (
 )
 
 import (
-	"appengine"
-	"appengine/datastore"
-	"appengine/user"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/user"
 )
 
 import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/russross/blackfriday"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
+
+	"io/ioutil"
 )
 
 import (
@@ -35,78 +41,195 @@ var editPostSeriesTmpl = template.Must(template.ParseFiles("templates/base.html"
 var newPostTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/author/newpost.html"))
 var editPostTmpl = template.Must(template.ParseFiles("templates/base.html", "templates/author/editpost.html"))
 
+const oauth_redirect_url = "http://localhost:8080/author/sign_in_google_callback/"
+
 // Author home page.
 func Home(w http.ResponseWriter, r *http.Request) {
 	pageData := context.Get(r, "PageData").(*x.PageData)
 	c := appengine.NewContext(r)
+
 	series := make([]models.PostSeries, 0, 10) // ** Plural series
 	q := datastore.NewQuery("PostSeries").Filter("Author =", pageData.Author.Key).Order("-DateAdded").Limit(10)
-	if n, err := q.Count(c); err == nil {
-		log.Printf("Number of series:%v", n)
-		if keys, err := q.GetAll(c, &series); err == nil {
-			var postSeries []map[string]template.HTML
-			for i, s := range series {
-				t := make(map[string]template.HTML)
-				t["Title"] = template.HTML(s.Title)
-				t["JoinedTitle"] = template.HTML(s.JoinedTitle)
-				t["AbstractHTML"] = template.HTML(s.AbstractHTML)
-				t["DateAdded"] = template.HTML(s.DateAdded.Format("January 2, 2006"))
-				q := datastore.NewQuery("Post").Filter("Series =", keys[i])
-				if n, err := q.Count(c); err == nil {
-					t["NumberOfPosts"] = template.HTML(strconv.Itoa(n))
-				} else {
-					t["NumberOfPosts"] = template.HTML("0")
-				}
-				postSeries = append(postSeries, t)
-			}
-			pageData.Misc["AuthorPostSeries"] = postSeries
+
+	keys, err := q.GetAll(c, &series)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var postSeries []map[string]template.HTML
+	for i, s := range series {
+		t := make(map[string]template.HTML)
+		t["Title"] = template.HTML(s.Title)
+		t["JoinedTitle"] = template.HTML(s.JoinedTitle)
+		t["AbstractHTML"] = template.HTML(s.AbstractHTML)
+		t["DateAdded"] = template.HTML(s.DateAdded.Format("January 2, 2006"))
+		q := datastore.NewQuery("Post").Filter("Series =", keys[i])
+		if n, err := q.Count(c); err == nil {
+			t["NumberOfPosts"] = template.HTML(strconv.Itoa(n))
 		} else {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			t["NumberOfPosts"] = template.HTML("0")
 		}
-	} else {
+		postSeries = append(postSeries, t)
+	}
+	pageData.Misc["AuthorPostSeries"] = postSeries
+
+	posts := make([]models.Post, 0, 20)
+	q = datastore.NewQuery("Post").Filter("Author =", pageData.Author.Key).Order("-DateAdded").Limit(20)
+
+	_, err = q.GetAll(c, &posts)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	posts := make([]models.Post, 0, 20)
-	q = datastore.NewQuery("Post").Filter("Author =", pageData.Author.Key).Order("-DateAdded").Limit(20)
-	if _, err := q.Count(c); err == nil {
-		if _, err := q.GetAll(c, &posts); err == nil {
-			var authorPosts []map[string]template.HTML
-			for _, p := range posts {
-				post := make(map[string]template.HTML)
-				post["Title"] = template.HTML(p.Title)
-				post["JoinedTitle"] = template.HTML(p.JoinedTitle)
-				post["AbstractHTML"] = template.HTML(p.AbstractHTML)
-				post["DateAdded"] = template.HTML(p.DateAdded.Format("January 2, 2006"))
-				post["YearAdded"] = template.HTML(p.DateAdded.Format("2006"))
-				post["MonthAdded"] = template.HTML(p.DateAdded.Format("1"))
-				post["DayAdded"] = template.HTML(p.DateAdded.Format("2"))
-				if p.Series != nil {
-					var series models.PostSeries
-					if err = datastore.Get(c, p.Series, &series); err == nil {
-						post["PositionInSeries"] = template.HTML(strconv.Itoa(p.PositionInSeries))
-						post["SeriesTitle"] = template.HTML(series.Title)
-						post["SeriesJoinedTitle"] = template.HTML(series.JoinedTitle)
+	var authorPosts []map[string]template.HTML
+	for _, p := range posts {
+		post := make(map[string]template.HTML)
+		post["Title"] = template.HTML(p.Title)
+		post["JoinedTitle"] = template.HTML(p.JoinedTitle)
+		post["AbstractHTML"] = template.HTML(p.AbstractHTML)
+		post["DateAdded"] = template.HTML(p.DateAdded.Format("January 2, 2006"))
+		post["YearAdded"] = template.HTML(p.DateAdded.Format("2006"))
+		post["MonthAdded"] = template.HTML(p.DateAdded.Format("1"))
+		post["DayAdded"] = template.HTML(p.DateAdded.Format("2"))
+		if p.Series != nil {
+			var series models.PostSeries
+			if err = datastore.Get(c, p.Series, &series); err == nil {
+				post["PositionInSeries"] = template.HTML(strconv.Itoa(p.PositionInSeries))
+				post["SeriesTitle"] = template.HTML(series.Title)
+				post["SeriesJoinedTitle"] = template.HTML(series.JoinedTitle)
+			}
+		}
+		authorPosts = append(authorPosts, post)
+	}
+	pageData.Misc["AuthorPosts"] = authorPosts
+
+	if err := homeTmpl.Execute(w, pageData); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+
+func SignIn(w http.ResponseWriter, r *http.Request) {
+	var c x.Configuration
+    c.GetConfiguration()
+	if oauth_string, err := x.CreateOauthRandomString(w, r); err == nil {
+		var (
+				googleOauthConfig = &oauth2.Config{
+					RedirectURL:    oauth_redirect_url,
+					ClientID:     	c.ClientID,
+					ClientSecret: 	c.ClientSecret,
+					Scopes:       	[]string{"https://www.googleapis.com/auth/userinfo.profile",
+											 "https://www.googleapis.com/auth/userinfo.email"},
+					Endpoint:     	google.Endpoint,
+				}
+				// Some random string, random for each request
+				oauthStateString = oauth_string
+			)
+
+		url := googleOauthConfig.AuthCodeURL(oauthStateString)
+    	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	} else {
+		log.Println(err)
+	}
+}
+
+
+func GoogleCallback(w http.ResponseWriter, r *http.Request) {
+	var c x.Configuration
+	c.GetConfiguration()
+	var googleOauthConfig = &oauth2.Config{
+				RedirectURL:    oauth_redirect_url,
+				ClientID:     	c.ClientID,
+				ClientSecret: 	c.ClientSecret,
+				Scopes:       	[]string{"https://www.googleapis.com/auth/userinfo.profile",
+										"https://www.googleapis.com/auth/userinfo.email"},
+				Endpoint:     	google.Endpoint,
+			}
+
+	if _, err := x.GetSavedOauthRandomString(w, r); err == nil {
+		code := r.URL.Query().Get("code")
+		ctx := appengine.NewContext(r)
+
+		token, err := googleOauthConfig.Exchange(ctx, code)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		client := googleOauthConfig.Client(ctx, token)
+		resp, err := client.Get("https://www.googleapis.com/userinfo/v2/me")
+		defer resp.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		raw, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var profile map[string]interface{}
+		if err := json.Unmarshal(raw, &profile); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		q := datastore.NewQuery("Author").Filter("Email = ", profile["email"])
+		authors := make([]models.Author, 0)
+		if n, err := q.Count(ctx); err == nil && n == 1 {
+			if _, err := q.GetAll(ctx, &authors); err == nil {
+				if len(authors) == 1 {
+					q := datastore.NewQuery("LoginSession").Filter("AuthorEmail = ", profile["email"])
+					// Delete all previous sessions
+					loginSessions := make([]models.LoginSession, 0)
+					iKeys, err := q.GetAll(ctx, &loginSessions)
+					if err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
+
+					for iKey := range iKeys {
+						key := datastore.NewKey(ctx, "LoginSession", "", int64(iKey), nil)
+						_ = datastore.Delete(ctx, key)
+					}
+
+					if sessionID, err := x.GetSessionID(w, r); err == nil {
+						loginSession := &models.LoginSession{
+							AuthorEmail:	authors[0].Email,
+							SessionID: 		sessionID,
+							DateStarted:	time.Now(),
+						}
+						key := datastore.NewIncompleteKey(ctx, "LoginSession", nil)
+						_, err = datastore.Put(ctx, key, loginSession)
+						if err == nil {
+							http.Redirect(w, r,"/author/", http.StatusFound)
+						} else {
+							http.Error(w, err.Error(), http.StatusInternalServerError)
+							return
+						}
 					}
 				}
-				authorPosts = append(authorPosts, post)
 			}
-			pageData.Misc["AuthorPosts"] = authorPosts
 		} else {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	} else {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+
+		//session, _ := util.GlobalSessions.SessionStart(w, r)
+		//defer session.SessionRelease(w)
+		//
+		//session.Set("id_token", token.Extra("id_token"))
+		//session.Set("access_token", token.AccessToken)
+		//session.Set("profile", profile)
 	}
-	if err := homeTmpl.Execute(w, pageData); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	// http.Error(w, errors.New("What...").Error(), http.StatusInternalServerError)
+	http.Error(w, "There was an error. That's all we know.", http.StatusInternalServerError)
+	return
 }
+
 
 // Register new author.
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -163,6 +286,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 // Add a new post series.
 func NewPostSeries(w http.ResponseWriter, r *http.Request) {
 	pageData := context.Get(r, "PageData").(*x.PageData)
@@ -201,6 +325,7 @@ func NewPostSeries(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 // Add a new post.
 func NewPost(w http.ResponseWriter, r *http.Request) {
 	pageData := context.Get(r, "PageData").(*x.PageData)
@@ -215,16 +340,16 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 			post.Title = title
 			post.JoinedTitle = strings.Join(strings.Split(strings.ToLower(title), " "), "-")
 		}
-		if abstractmd := r.PostFormValue("AbstractMD"); abstractmd != "" {
-			post.AbstractMD = abstractmd
-			post.AbstractHTML = string(blackfriday.MarkdownBasic([]byte(abstractmd)))
+		if abstractMD := r.PostFormValue("AbstractMD"); abstractMD != "" {
+			post.AbstractMD = abstractMD
+			post.AbstractHTML = string(blackfriday.MarkdownBasic([]byte(abstractMD)))
 		}
 		if bodymd := r.PostFormValue("BodyMD"); bodymd != "" {
 			post.BodyMD = bodymd
 			post.BodyHTML = string(blackfriday.MarkdownBasic([]byte(bodymd)))
 		}
-		if tagstr := r.PostFormValue("Tags"); tagstr != "" {
-			tags := strings.Split(tagstr, ",")
+		if tagStr := r.PostFormValue("Tags"); tagStr != "" {
+			tags := strings.Split(tagStr, ",")
 			for i, tag := range tags {
 				tags[i] = strings.Trim(tag, " \t")
 			}
@@ -246,6 +371,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 
 // Add a new post to series.
 func NewPostInSeries(w http.ResponseWriter, r *http.Request) {
@@ -315,6 +441,7 @@ func NewPostInSeries(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 
 // Edit post series
 func EditSeries(w http.ResponseWriter, r *http.Request) {
@@ -390,6 +517,7 @@ func EditSeries(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
 
 func EditPost(w http.ResponseWriter, r *http.Request) {
 	pagevars := mux.Vars(r)

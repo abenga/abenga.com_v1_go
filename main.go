@@ -8,13 +8,15 @@ import (
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/justinas/alice"
+
+
 )
 
 import (
 	mw "middleware"
 	"views"
 	author "views/author"
-	viz "views/visualizations"
+	//viz "views/visualizations"
 )
 
 func init() {
@@ -27,10 +29,14 @@ func init() {
 	r.Handle("/postseries/{seriesjtitle}/", plainMid.ThenFunc(views.PostSeries))
 	r.Handle("/post/{year}/{month}/{day}/{jtitle}/", plainMid.ThenFunc(views.Post))
 
-	r.Handle("/data/kenya/", plainMid.ThenFunc(viz.KenyaData))
+	//r.Handle("/data/kenya/", plainMid.ThenFunc(viz.KenyaData))
 
-	// Register new author.
-	r.Handle("/author/register/", plainMid.ThenFunc(author.Register))
+	//// Register new author.
+	//r.Handle("/author/register/", plainMid.ThenFunc(author.Register))
+
+	r.Handle("/author/sign_in/", plainMid.ThenFunc(author.SignIn))
+	r.Handle("/author/sign_in_google_callback/", plainMid.ThenFunc(author.GoogleCallback))
+
 
 	// Author pages - viewable only by authorized author.
 	r.Handle("/author/", authMid.ThenFunc(author.Home))

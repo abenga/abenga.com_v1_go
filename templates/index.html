@@ -2,27 +2,19 @@
 
 {{define "content"}}
 
-<p class="text-center">I am a software developer based in Nairobi, Kenya.</p>
-
-<p class="text-center social-links">
-  <a href="https://twitter.com/HoraceAbenga/" class="social-link twitter"><i class="fa fa-twitter-square"></i></a>
-  <a href="https://plus.google.com/116853742849786127215/posts" class="social-link google-plus"><i class="fa fa-google-plus-square"></i></a>
-  <a href="https://github.com/HoraceAbenga/" class="social-link github"><i class="fa fa-github-square"></i></a>
-</p>
-
 {{if index .Misc "Posts" }}
   <h2>Recent Posts</h2>
   {{ range index .Misc "Posts"}}
-    <div class="post-summary">
-      <h2 class="heading"><a href="post/{{ index . "YearAdded" }}/{{ index . "MonthAdded" }}/{{ index . "DayAdded" }}/{{ index . "JoinedTitle" }}/">{{ if index . "SeriesTitle" }}{{ index . "SeriesTitle" }}&nbsp;- {{ .PositionInSeries }}:&nbsp;{{ end }}{{ index . "Title" }}</a></h2>
-      <div>{{ index . "AbstractHTML" }}</div>
-      {{ if index . "SeriesTitle" }}
-        <div class="text-muted small"><em>This is a post in the
-          <a href="/postseries/{{ index . "SeriesJoinedTitle" }}/">{{ index . "SeriesTitle" }}</a> series.
-        </em></div>
-      {{ end }}
-      <p class="text-muted text-right small"><em>{{ index . "DateAdded" }}</em></p>
+    <div class="card">
+      <!--<img class="card-img-top" src="..." alt="Card image cap">-->
+      <div class="card-block">
+        <h2 class="card-title"><a href="post/{{ index . "YearAdded" }}/{{ index . "MonthAdded" }}/{{ index . "DayAdded" }}/{{ index . "JoinedTitle" }}/">{{ if index . "SeriesTitle" }}{{ index . "SeriesTitle" }}&nbsp;- {{ .PositionInSeries }}:&nbsp;{{ end }}{{ index . "Title" }}</a></h2>
+
+        <div class="card-text">{{ index . "AbstractHTML" }}</div>
+        <p class="text-right"><a class="btn btn-sm btn-primary" href="post/{{ index . "YearAdded" }}/{{ index . "MonthAdded" }}/{{ index . "DayAdded" }}/{{ index . "JoinedTitle" }}/"><i class="fa fa-book"></i>&nbsp;read</a></p>
+      </div>
     </div>
+
   {{ end }}
 {{ end }}
 

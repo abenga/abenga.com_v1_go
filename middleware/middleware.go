@@ -5,9 +5,8 @@ import (
 )
 
 import (
-	"appengine"
-	"appengine/datastore"
-	"appengine/user"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/datastore"
 )
 
 import (
@@ -23,20 +22,24 @@ import (
 // authenticated author. If this is true, we set the PageData author field.
 func Initialize(next http.Handler) http.Handler {
 	handler := func(w http.ResponseWriter, r *http.Request) {
+		ctx := appengine.NewContext(r)
+		sessionID, _ := x.GetActiveSession(w, r)
+
 		pageData := new(x.PageData)
 		pageData.Misc = make(map[string]interface{})
-		c := appengine.NewContext(r)
-		u := user.Current(c)
-		if u != nil {
-			logouturl, _ := user.LogoutURL(c, "/")
-			pageData.LogoutURL = logouturl
-			q := datastore.NewQuery("Author").Filter("Email = ", u.Email)
-			authors := make([]models.Author, 0)
-			if n, err := q.Count(c); err == nil && n == 1 {
-				if keys, err := q.GetAll(c, &authors); err == nil {
+
+		if sessionID != "" {
+			loginSessions := make([]models.LoginSession, 0)
+			q := datastore.NewQuery("LoginSession").Filter("SessionID = ", sessionID)
+			_, err := q.GetAll(ctx, &loginSessions)
+			if err == nil && len(loginSessions) == 1 {
+				q := datastore.NewQuery("Author").Filter("Email = ", loginSessions[0].AuthorEmail)
+				authors := make([]models.Author, 0)
+				if keys, err := q.GetAll(ctx, &authors); err == nil {
 					if len(authors) == 1 {
 						pageData.Author = &authors[0]
 						pageData.Author.Key = keys[0]
+
 					}
 				}
 			}
@@ -50,13 +53,12 @@ func Initialize(next http.Handler) http.Handler {
 // If the author has not been authorized, redirect the user to a login page.
 func CheckAuth(next http.Handler) http.Handler {
 	handler := func(w http.ResponseWriter, r *http.Request) {
-		c := appengine.NewContext(r)
-		loginurl, _ := user.LoginURL(c, r.URL.String())
 		pageData := context.Get(r, "PageData").(*x.PageData)
+
 		if pageData.Author != nil {
 			next.ServeHTTP(w, r)
 		} else {
-			w.Header().Set("Location", loginurl)
+			w.Header().Set("Location", "/author/sign_in/")
 			w.WriteHeader(http.StatusFound)
 		}
 		context.Set(r, "PageData", pageData)
