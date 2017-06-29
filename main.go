@@ -16,7 +16,6 @@ import (
 	mw "middleware"
 	"views"
 	author "views/author"
-	//viz "views/visualizations"
 )
 
 func init() {
@@ -28,12 +27,6 @@ func init() {
 	r.Handle("/", plainMid.ThenFunc(views.Index))
 	r.Handle("/postseries/{seriesjtitle}/", plainMid.ThenFunc(views.PostSeries))
 	r.Handle("/post/{year}/{month}/{day}/{jtitle}/", plainMid.ThenFunc(views.Post))
-
-	//r.Handle("/data/kenya/", plainMid.ThenFunc(viz.KenyaData))
-
-	//// Register new author.
-	//r.Handle("/author/register/", plainMid.ThenFunc(author.Register))
-
 	r.Handle("/author/sign_in/", plainMid.ThenFunc(author.SignIn))
 	r.Handle("/author/sign_in_google_callback/", plainMid.ThenFunc(author.GoogleCallback))
 
